@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parking Portal</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-4">Parking Portal</h1>
+
+        <!-- Insert Form -->
+        <form id="insertForm" class="mt-4">
+            <div class="form-group">
+                <label for="owner">Car Owner:</label>
+                <input type="text" class="form-control" id="owner" name="owner" required>
+            </div>
+
+            <div class="form-group">
+                <label for="plate">Plate Number:</label>
+                <input type="text" class="form-control" id="plate" name="plate" required>
+            </div>
+
+            <div class="form-group">
+                <label for="space">Parking Space ID:</label>
+                <input type="number" class="form-control" id="space" name="space" required>
+            </div>
+
+            <button type="button" class="btn btn-primary" onclick="insertData()">Insert Data</button>
+        </form>
+
+        <!-- Display All Data Button -->
+        <button type="button" class="btn btn-success mt-3" onclick="displayAllData()">Display All Data</button>
+
+        <!-- Update Departure Time Form -->
+        <form id="updateForm" class="mt-4">
+            <div class="form-group">
+                <label for="departurePlate">Plate Number for Departure Update:</label>
+                <input type="text" class="form-control" id="departurePlate" name="departurePlate" required>
+            </div>
+
+            <button type="button" class="btn btn-warning" onclick="updateDepartureTime()">Update Departure Time</button>
+        </form>
+
+        <!-- Search by Plate Number Form -->
+        <form id="searchForm" class="mt-4">
+            <div class="form-group">
+                <label for="searchPlate">Search by Plate Number:</label>
+                <input type="text" class="form-control" id="searchPlate" name="searchPlate" required>
+            </div>
+
+            <button type="button" class="btn btn-info" onclick="searchByPlateNumber()">Search</button>
+        </form>
+
+        <!-- Display Results -->
+        <div id="results" class="mt-4"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.8/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        // JavaScript code for interacting with the backend
+        async function insertData() {
+            const owner = document.getElementById('owner').value;
+            const plate = document.getElementById('plate').value;
+            const space = document.getElementById('space').value;
+
+            const response = await fetch('/insert', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ owner, plate, space }),
+            });
+
+            const result = await response.json();
+            showAlert(result.message);
+            // Clear the form after successful submission
+            document.getElementById('insertForm').reset();
+        }
+
+        async function displayAllData() {
+            const response = await fetch('/display');
+            const data = await response.json();
+            displayResults(data);
+        }
+
+        async function updateDepartureTime() {
+            const departurePlate = document.getElementById('departurePlate').value;
+
+            const response = await fetch('/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ departurePlate }),
+            });
+
+            const result = await response.json();
+            showAlert(result.message);
+            // Clear the form after successful submission
+            document.getElementById('updateForm').reset();
+        }
+
+        async function searchByPlateNumber() {
+            const searchPlate = document.getElementById('searchPlate').value;
+
+            const response = await fetch(`/search/${searchPlate}`);
+            const data = await response.json();
+            displayResults(data);
+        }
+
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<h2>Results:</h2>';
+
+            if (data.length === 0) {
+                resultsDiv.innerHTML += '<p>No results found.</p>';
+            } else {
+                data.forEach(row => {
+                    resultsDiv.innerHTML += `<p>${JSON.stringify(row)}</p>`;
+                });
+            }
+        }
+
+        function showAlert(message) {
+            const alertDiv = document.getElementById('alert');
+            alertDiv.innerHTML = `
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
